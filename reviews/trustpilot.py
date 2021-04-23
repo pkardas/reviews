@@ -33,18 +33,24 @@ def get_reviews(url: str, limit: int = 50) -> TrustPilotReviews:
 
         if new_reviews := _get_visible_reviews(soup):
             reviews += new_reviews
+            print(f"Downloaded {len(new_reviews)} reviews ({len(reviews)} in total).")
         else:
+            print(f"No more reviews available.")
             break
 
         url = _next_subpage(soup)
 
         if not url:
+            print("Could not find next subpage.")
             break
 
     return TrustPilotReviews(reviews[:limit])
 
 
 def _get_visible_reviews(soup: BeautifulSoup) -> List[Review]:
+    """
+    Downloads approx. 20 reviews from a single subpage.
+    """
     review_cards = soup.findAll("div", {"class": "review-card"})
 
     reviews = []
@@ -62,6 +68,10 @@ def _get_visible_reviews(soup: BeautifulSoup) -> List[Review]:
 
 
 def _next_subpage(soup: BeautifulSoup) -> Optional[str]:
+    """
+    TrustPilot no longer uses consecutive natural numbers as subpage URLs.
+    This function finds "Next page" button and extracts 'href' attribute.
+    """
     buttons = soup.findAll("a", {"class": "button button--primary next-page"})
 
     if not buttons:
